@@ -80,3 +80,4 @@ function satoya_seed_origin_spots() {
     update_post_meta($post_id, 'satoya_website_url',    'https://onokun.com/');
     update_post_meta($post_id, 'satoya_message',        '宮城県東松島市にある、おのくん発祥の地。東日本大震災の記憶と希望を伝え続ける場所です。ここから全国・世界へ旅立ったおのくんの"実家"です。');
 }
+require_once SATOYA_PATH . 'includes/llmo.php';
