@@ -1,0 +1,821 @@
+/* ============================================================
+   里親コミュニティMAP - Styles
+   ============================================================ */
+
+/* ---- Root container ---- */
+#satoya-map-root {
+    font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* ---- Google Maps Pinpoint Panel ---- */
+.satoya-gmap-panel {
+    margin-top: 12px;
+    border: 2px solid #FF6B35;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
+    animation: satoyaPanelIn 0.3s ease;
+}
+.satoya-gmap-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #FF9F56, #FF6B35);
+    color: #fff;
+}
+.satoya-gmap-title {
+    font-size: 14px;
+    font-weight: 800;
+}
+.satoya-gmap-close {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #fff;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.satoya-gmap-close:hover { background: rgba(255,255,255,0.35); }
+.satoya-gmap-iframe {
+    width: 100%;
+    height: 400px;
+    border: none;
+    display: block;
+}
+
+/* ---- Spot Directory（登録スポット一覧）---- */
+.satoya-spot-directory {
+    margin-top: 16px;
+    border: 2px solid #f0ece7;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #fff;
+}
+.satoya-spot-directory-header {
+    padding: 14px 18px 10px;
+    background: linear-gradient(135deg, #fff8f5, #fff5ef);
+    border-bottom: 1px solid #f0ece7;
+}
+.satoya-spot-directory-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.satoya-spot-directory-badge {
+    background: #FF6B35;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 10px;
+    border-radius: 20px;
+}
+.satoya-spot-directory-desc {
+    font-size: 12px;
+    color: #aaa;
+    margin: 4px 0 0;
+}
+.satoya-spot-directory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0;
+}
+.satoya-spot-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: none;
+    border-bottom: 1px solid #f5f0eb;
+    border-right: 1px solid #f5f0eb;
+    background: #fff;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, transform 0.15s;
+    width: 100%;
+}
+.satoya-spot-card:hover {
+    background: #fff8f5;
+    transform: translateX(3px);
+}
+.satoya-spot-card.is-active {
+    background: #fff3ee;
+    border-left: 3px solid #FF6B35;
+}
+.satoya-spot-card--add {
+    cursor: default;
+    opacity: 0.5;
+    background: repeating-linear-gradient(
+        45deg,
+        #fafaf8,
+        #fafaf8 4px,
+        #fff 4px,
+        #fff 12px
+    );
+}
+.satoya-spot-card--add:hover { transform: none; background: none; }
+.satoya-spot-card-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+    width: 40px;
+    text-align: center;
+}
+.satoya-spot-card--add .satoya-spot-card-icon {
+    font-size: 24px;
+    color: #ccc;
+    border: 2px dashed #ddd;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.satoya-spot-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1;
+    min-width: 0;
+}
+.satoya-spot-card-type {
+    font-size: 10px;
+    font-weight: 700;
+    color: #FF6B35;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.satoya-spot-card-name {
+    font-size: 14px;
+    font-weight: 900;
+    color: #1a1a1a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.satoya-spot-card-addr {
+    font-size: 11.5px;
+    color: #999;
+}
+.satoya-spot-card-zoom {
+    font-size: 11px;
+    font-weight: 700;
+    color: #FF6B35;
+    white-space: nowrap;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+.satoya-spot-card:hover .satoya-spot-card-zoom,
+.satoya-spot-card.is-active .satoya-spot-card-zoom {
+    opacity: 1;
+}
+.satoya-spot-directory-empty {
+    padding: 24px;
+    text-align: center;
+    color: #aaa;
+    font-size: 14px;
+}
+
+/* ---- Map Reset Button ---- */
+.satoya-map-reset {
+    display: none;
+    align-items: center;
+    gap: 5px;
+    background: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+.satoya-map-reset:hover { background: #333; }
+
+/* ---- Counter ---- */
+.satoya-counter {
+    background: linear-gradient(135deg, #ff9f56 0%, #ff5f35 100%);
+    border-radius: 16px;
+    padding: 24px 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 6px 20px rgba(255, 95, 53, 0.35);
+    color: #fff;
+}
+.satoya-counter-inner {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.satoya-counter-label {
+    font-size: 15px;
+    letter-spacing: 2px;
+    opacity: 0.92;
+}
+.satoya-counter-num {
+    font-size: 72px;
+    font-weight: 900;
+    line-height: 1;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.satoya-counter-unit {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* ---- Tab buttons ---- */
+.satoya-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.satoya-tab {
+    padding: 10px 28px;
+    border: 2px solid #ff5f35;
+    background: #fff;
+    color: #ff5f35;
+    border-radius: 28px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.1s;
+    font-family: inherit;
+}
+.satoya-tab:hover {
+    background: #fff0eb;
+    transform: translateY(-1px);
+}
+.satoya-tab.active {
+    background: #ff5f35;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(255, 95, 53, 0.35);
+}
+
+/* ---- Map panels ---- */
+.satoya-map-panel {
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 3px 16px rgba(0, 0, 0, 0.12);
+    background: #f5f5f5;
+}
+
+/* ---- Legend ---- */
+.satoya-legend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #fff;
+    flex-wrap: wrap;
+}
+.legend-ttl {
+    font-size: 12px;
+    color: #888;
+    font-weight: bold;
+}
+.legend-chip {
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* ---- Leaflet tooltip override ---- */
+.leaflet-tooltip {
+    font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+    font-size: 13px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* ---- Store Popup ---- */
+.satoya-store-popup {
+    min-width: 180px;
+    max-width: 240px;
+    font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+}
+.satoya-store-popup img {
+    width: 100%;
+    max-height: 130px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: block;
+}
+.satoya-store-popup h4 {
+    margin: 0 0 6px;
+    font-size: 15px;
+    color: #222;
+}
+.satoya-store-popup p {
+    font-size: 13px;
+    color: #555;
+    margin: 0 0 10px;
+    line-height: 1.5;
+}
+.satoya-popup-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.satoya-popup-btn {
+    display: block;
+    text-align: center;
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+.satoya-popup-btn:hover { opacity: 0.85; }
+.satoya-popup-btn.web-btn {
+    background: #ff5f35;
+    color: #fff;
+}
+.satoya-popup-btn.line-btn {
+    background: #06c755;
+    color: #fff;
+}
+.satoya-popup-btn.gmap-btn {
+    background: #4285f4;
+    color: #fff;
+}
+.satoya-popup-type {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    margin-bottom: 4px;
+    letter-spacing: 0.03em;
+}
+/* ---- 里親レベル・進捗バー ---- */
+.satoya-pref-level {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 6px 0 8px;
+}
+.satoya-pref-level-icon { font-size: 20px; }
+.satoya-pref-level-badge {
+    font-size: 12px;
+    font-weight: 800;
+    background: #fff5f0;
+    color: #FF6B35;
+    border: 1px solid #ffd0be;
+    border-radius: 20px;
+    padding: 3px 10px;
+}
+.satoya-pref-count {
+    font-size: 16px;
+    color: #1a1a1a;
+    margin: 0 0 8px;
+}
+.satoya-pref-count strong { font-size: 20px; color: #FF6B35; }
+.satoya-pref-count-zero {
+    font-size: 13px;
+    color: #aaa;
+    margin: 4px 0 8px;
+}
+.satoya-prog-bar {
+    height: 10px;
+    background: #f0ece7;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 0 0 6px;
+}
+.satoya-prog-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #FF9F56, #FF6B35);
+    border-radius: 10px;
+    transition: width 0.6s ease;
+    min-width: 4px;
+}
+.satoya-pref-prog-msg {
+    font-size: 12px;
+    color: #666;
+    margin: 0 0 10px;
+    line-height: 1.5;
+}
+.satoya-pref-prog-msg strong { color: #FF6B35; }
+.satoya-pref-prog-msg em { font-style: normal; color: #444; font-weight: 700; }
+.satoya-pref-cta-wrap {
+    border-top: 1px solid #f0ece7;
+    margin-top: 8px;
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.satoya-pref-cta-note {
+    font-size: 12px;
+    color: #888;
+    margin: 0;
+    text-align: center;
+}
+.satoya-pref-cta-note strong { color: #FF6B35; }
+.satoya-pref-cta-btn {
+    display: block;
+    background: linear-gradient(135deg, #FF9F56, #FF6B35);
+    color: #fff;
+    text-decoration: none;
+    border: none;
+    border-radius: 20px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+    cursor: pointer;
+    transition: opacity 0.18s, transform 0.15s;
+}
+.satoya-pref-cta-btn:hover { opacity: 0.88; transform: scale(1.02); color: #fff; text-decoration: none; }
+
+/* 都道府県クリックポップアップ */
+.satoya-pref-popup {
+    min-width: 200px;
+    font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+    padding: 2px 0;
+}
+.satoya-pref-popup-name {
+    font-size: 17px;
+    font-weight: 900;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f0ece7;
+}
+.satoya-pref-popup-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.satoya-pref-stat {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+.satoya-pref-stat.member {
+    background: #fff5f0;
+    color: #ff5f35;
+    border: 1px solid #ffd0be;
+}
+.satoya-pref-stat.spot {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fcd34d;
+}
+.satoya-pref-popup-msg {
+    font-size: 12.5px;
+    color: #666;
+    margin: 0 0 10px;
+    line-height: 1.6;
+}
+.satoya-pref-popup-empty {
+    color: #999;
+}
+.satoya-pref-zoom-btn {
+    display: block;
+    width: 100%;
+    background: linear-gradient(135deg, #FF9F56, #FF6B35);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    text-align: center;
+    transition: opacity 0.18s, transform 0.15s;
+    letter-spacing: 0.02em;
+}
+.satoya-pref-zoom-btn:hover {
+    opacity: 0.88;
+    transform: scale(1.02);
+}
+
+/* おのくんの実家ポップアップ */
+.satoya-origin-popup {
+    min-width: 210px;
+    max-width: 290px;
+}
+.satoya-origin-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #FF9F56, #FF6B35);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+    letter-spacing: 0.04em;
+}
+.satoya-origin-popup h4 {
+    font-size: 15px;
+    color: #1a1a1a;
+    margin: 0 0 6px;
+    font-weight: 900;
+}
+.satoya-origin-popup p {
+    font-size: 12.5px;
+    color: #555;
+    line-height: 1.6;
+    margin: 0 0 10px;
+}
+
+/* ============================
+   Spot Panel（スポット詳細パネル）
+   ============================ */
+#satoya-spot-panel {
+    margin-top: 0;
+    background: #fff;
+    border: 2px solid #f0ece7;
+    border-top: 4px solid #ff5f35;
+    border-radius: 0 0 16px 16px;
+    overflow: hidden;
+    animation: satoyaPanelIn 0.3s ease;
+}
+@keyframes satoyaPanelIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.satoya-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: #fff8f5;
+    border-bottom: 1px solid #f0ece7;
+}
+.satoya-panel-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #1a1a1a;
+}
+.satoya-panel-close {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #888;
+    line-height: 1;
+    transition: background 0.15s;
+}
+.satoya-panel-close:hover { background: #f0ece7; }
+.satoya-panel-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    padding: 16px;
+}
+.satoya-panel-card {
+    border: 2px solid #f0ece7;
+    border-radius: 14px;
+    padding: 14px 16px;
+    transition: border-color 0.18s;
+}
+.satoya-panel-card.is-active {
+    border-color: #ff5f35;
+    background: #fff8f5;
+}
+.satoya-panel-card-header {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-bottom: 8px;
+}
+.satoya-panel-card-type {
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+}
+.satoya-panel-card-name {
+    font-size: 16px;
+    color: #1a1a1a;
+    font-weight: 900;
+}
+.satoya-panel-card-msg {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+    margin: 0 0 10px;
+}
+.satoya-panel-card-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+.satoya-panel-flyto-btn {
+    background: linear-gradient(135deg, #FF9F56, #FF6B35);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 7px 16px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: opacity 0.18s, transform 0.15s;
+}
+.satoya-panel-flyto-btn:hover { opacity: 0.85; transform: scale(1.02); }
+.satoya-panel-web-link,
+.satoya-panel-line-link {
+    font-size: 12.5px;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 16px;
+    border: 1px solid #ddd;
+    color: #555;
+    transition: border-color 0.15s;
+}
+.satoya-panel-web-link:hover  { border-color: #ff5f35; color: #ff5f35; }
+.satoya-panel-line-link:hover { border-color: #06c755; color: #06c755; }
+
+.satoya-popup-address {
+    font-size: 12px;
+    color: #888;
+    margin: 4px 0 0;
+}
+.satoya-popup-divider {
+    border: none;
+    border-top: 1px dashed #f0ece7;
+    margin: 10px 0;
+}
+.satoya-popup-pref-section {
+    background: #fff8f5;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-top: 4px;
+}
+.satoya-popup-scroll-hint {
+    font-size: 11.5px;
+    color: #FF6B35;
+    background: #fff5f0;
+    border-radius: 6px;
+    padding: 5px 8px;
+    margin: 8px 0 0;
+    font-weight: 700;
+    text-align: center;
+}
+/* スポットカード点滅（ポップアップ開いたとき） */
+@keyframes satoyaFlash {
+    0%   { background: #fff5f0; box-shadow: 0 0 0 4px rgba(255,107,53,0.4); }
+    50%  { background: #ffe8dc; box-shadow: 0 0 0 8px rgba(255,107,53,0.2); }
+    100% { background: #fff5f0; box-shadow: 0 0 0 3px rgba(255,107,53,0.15); }
+}
+.satoya-spot-card.is-flash {
+    animation: satoyaFlash 0.6s ease 2;
+}
+
+/* ============================
+   Registration Form
+   ============================ */
+#satoya-form-wrapper {
+    max-width: 580px;
+    margin: 0 auto;
+    padding: 10px 0;
+}
+
+.satoya-notice {
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    font-size: 15px;
+    line-height: 1.6;
+}
+.satoya-success {
+    background: #d4edda;
+    border: 1px solid #b8ddc8;
+    color: #1a5c30;
+}
+.satoya-error {
+    background: #fde8e8;
+    border: 1px solid #f5c6c6;
+    color: #7a1515;
+}
+
+.satoya-field {
+    margin-bottom: 22px;
+}
+.satoya-field label {
+    display: block;
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 7px;
+}
+.satoya-field small {
+    display: block;
+    color: #888;
+    font-size: 12px;
+    margin-top: 4px;
+}
+.satoya-field input[type="text"],
+.satoya-field input[type="email"],
+.satoya-field input[type="url"],
+.satoya-field select,
+.satoya-field textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+    background: #fff;
+}
+.satoya-field input:focus,
+.satoya-field select:focus,
+.satoya-field textarea:focus {
+    outline: none;
+    border-color: #ff5f35;
+    box-shadow: 0 0 0 3px rgba(255, 95, 53, 0.12);
+}
+
+.satoya-radio-group {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.satoya-radio {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: normal;
+    padding: 8px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    transition: border-color 0.2s, background 0.2s;
+}
+.satoya-radio input[type="radio"] {
+    margin: 0;
+    accent-color: #ff5f35;
+}
+.satoya-radio:has(input:checked) {
+    border-color: #ff5f35;
+    background: #fff5f2;
+}
+
+.req {
+    color: #e00;
+    margin-left: 2px;
+}
+
+.satoya-submit-area {
+    text-align: center;
+    padding-top: 10px;
+}
+.satoya-submit-btn {
+    background: linear-gradient(135deg, #ff9f56, #ff5f35);
+    color: #fff;
+    border: none;
+    padding: 15px 48px;
+    border-radius: 32px;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(255, 95, 53, 0.38);
+    transition: opacity 0.2s, transform 0.1s;
+    letter-spacing: 0.5px;
+}
+.satoya-submit-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+.satoya-submit-note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #999;
+}
+
+/* ============================================================
+   Revolink LP — Full Styles (v1.8.0)
+   ============================================================ */
+
+/* ===== Sticky Nav ===== */

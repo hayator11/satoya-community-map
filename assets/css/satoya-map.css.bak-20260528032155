@@ -1,0 +1,577 @@
+/* ============================================================
+   里親コミュニティMAP - Styles
+   ============================================================ */
+
+/* ---- Root container ---- */
+#satoya-map-root {
+    font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* ---- Counter ---- */
+.satoya-counter {
+    background: linear-gradient(135deg, #ff9f56 0%, #ff5f35 100%);
+    border-radius: 16px;
+    padding: 24px 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 6px 20px rgba(255, 95, 53, 0.35);
+    color: #fff;
+}
+.satoya-counter-inner {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.satoya-counter-label {
+    font-size: 15px;
+    letter-spacing: 2px;
+    opacity: 0.92;
+}
+.satoya-counter-num {
+    font-size: 72px;
+    font-weight: 900;
+    line-height: 1;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.satoya-counter-unit {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* ---- Tab buttons ---- */
+.satoya-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.satoya-tab {
+    padding: 10px 28px;
+    border: 2px solid #ff5f35;
+    background: #fff;
+    color: #ff5f35;
+    border-radius: 28px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.1s;
+    font-family: inherit;
+}
+.satoya-tab:hover {
+    background: #fff0eb;
+    transform: translateY(-1px);
+}
+.satoya-tab.active {
+    background: #ff5f35;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(255, 95, 53, 0.35);
+}
+
+/* ---- Map panels ---- */
+.satoya-map-panel {
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 3px 16px rgba(0, 0, 0, 0.12);
+    background: #f5f5f5;
+}
+
+/* ---- Legend ---- */
+.satoya-legend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #fff;
+    flex-wrap: wrap;
+}
+.legend-ttl {
+    font-size: 12px;
+    color: #888;
+    font-weight: bold;
+}
+.legend-chip {
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* ---- Leaflet tooltip override ---- */
+.leaflet-tooltip {
+    font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+    font-size: 13px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* ---- Store Popup ---- */
+.satoya-store-popup {
+    min-width: 180px;
+    max-width: 240px;
+    font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+}
+.satoya-store-popup img {
+    width: 100%;
+    max-height: 130px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: block;
+}
+.satoya-store-popup h4 {
+    margin: 0 0 6px;
+    font-size: 15px;
+    color: #222;
+}
+.satoya-store-popup p {
+    font-size: 13px;
+    color: #555;
+    margin: 0 0 10px;
+    line-height: 1.5;
+}
+.satoya-popup-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.satoya-popup-btn {
+    display: block;
+    text-align: center;
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+.satoya-popup-btn:hover { opacity: 0.85; }
+.satoya-popup-btn.line-btn {
+    background: #06c755;
+    color: #fff;
+}
+.satoya-popup-btn.gmap-btn {
+    background: #4285f4;
+    color: #fff;
+}
+
+/* ============================
+   Registration Form
+   ============================ */
+#satoya-form-wrapper {
+    max-width: 580px;
+    margin: 0 auto;
+    padding: 10px 0;
+}
+
+.satoya-notice {
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    font-size: 15px;
+    line-height: 1.6;
+}
+.satoya-success {
+    background: #d4edda;
+    border: 1px solid #b8ddc8;
+    color: #1a5c30;
+}
+.satoya-error {
+    background: #fde8e8;
+    border: 1px solid #f5c6c6;
+    color: #7a1515;
+}
+
+.satoya-field {
+    margin-bottom: 22px;
+}
+.satoya-field label {
+    display: block;
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 7px;
+}
+.satoya-field small {
+    display: block;
+    color: #888;
+    font-size: 12px;
+    margin-top: 4px;
+}
+.satoya-field input[type="text"],
+.satoya-field input[type="email"],
+.satoya-field input[type="url"],
+.satoya-field select,
+.satoya-field textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+    background: #fff;
+}
+.satoya-field input:focus,
+.satoya-field select:focus,
+.satoya-field textarea:focus {
+    outline: none;
+    border-color: #ff5f35;
+    box-shadow: 0 0 0 3px rgba(255, 95, 53, 0.12);
+}
+
+.satoya-radio-group {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.satoya-radio {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: normal;
+    padding: 8px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    transition: border-color 0.2s, background 0.2s;
+}
+.satoya-radio input[type="radio"] {
+    margin: 0;
+    accent-color: #ff5f35;
+}
+.satoya-radio:has(input:checked) {
+    border-color: #ff5f35;
+    background: #fff5f2;
+}
+
+.req {
+    color: #e00;
+    margin-left: 2px;
+}
+
+.satoya-submit-area {
+    text-align: center;
+    padding-top: 10px;
+}
+.satoya-submit-btn {
+    background: linear-gradient(135deg, #ff9f56, #ff5f35);
+    color: #fff;
+    border: none;
+    padding: 15px 48px;
+    border-radius: 32px;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(255, 95, 53, 0.38);
+    transition: opacity 0.2s, transform 0.1s;
+    letter-spacing: 0.5px;
+}
+.satoya-submit-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+.satoya-submit-note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #999;
+}
+
+/* ============================================================
+   REVOlink LP — Sticky Nav
+   ============================================================ */
+.rl-lp-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255,255,255,0.97);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #f0ede8;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.rl-lp-nav-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    height: 46px;
+}
+.rl-lp-nav-inner::-webkit-scrollbar { display: none; }
+.rl-lp-nav-item {
+    flex-shrink: 0;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    text-decoration: none;
+    transition: background 0.18s, color 0.18s;
+    white-space: nowrap;
+}
+.rl-lp-nav-item:hover,
+.rl-lp-nav-item.is-active {
+    background: #FF6B35;
+    color: #fff;
+}
+
+/* ---- Hero CTA ---- */
+.rl-hero {
+    margin-bottom: 0;
+}
+.rl-hero-cta {
+    display: inline-block;
+    background: linear-gradient(135deg, #FF9F56, #FF6B35);
+    color: #fff;
+    padding: 13px 32px;
+    border-radius: 32px;
+    font-size: 16px;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: 0 4px 16px rgba(255,107,53,0.38);
+    transition: opacity 0.2s, transform 0.2s;
+    margin-top: 16px;
+    display: block;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+.rl-hero-cta:hover { opacity: 0.9; transform: translateY(-2px); }
+
+/* ============================================================
+   REVOlink LP — 5ブロック 参加セクション
+   ============================================================ */
+.rl-participate-section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 36px 16px 44px;
+}
+.rl-participate-lead {
+    text-align: center;
+    font-size: 14px;
+    color: #999;
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+}
+
+/* 5カードグリッド */
+.rl-participate-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+}
+
+/* カード共通 */
+.rl-pcard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 14px 20px;
+    border-radius: 20px;
+    border: 2px solid transparent;
+    text-decoration: none;
+    text-align: center;
+    transition: transform 0.28s cubic-bezier(0.22,1,0.36,1),
+                box-shadow  0.28s cubic-bezier(0.22,1,0.36,1);
+}
+.rl-pcard:hover {
+    transform: translateY(-9px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.10);
+}
+
+/* カラーバリアント */
+.rl-pcard--amber { background: #FFFBEB; border-color: #FDE68A; }
+.rl-pcard--sky   { background: #EFF6FF; border-color: #BFDBFE; }
+.rl-pcard--sage  { background: #F0FDF4; border-color: #BBF7D0; }
+.rl-pcard--teal  { background: #F0FDFA; border-color: #99F6E4; }
+.rl-pcard--rose  { background: #FFF1F2; border-color: #FECDD3; }
+
+/* カード内要素 */
+.rl-pcard-num {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #bbb;
+    margin-bottom: 8px;
+}
+.rl-pcard-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+    line-height: 1;
+}
+.rl-pcard-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #222;
+    margin: 0 0 10px;
+    line-height: 1.3;
+}
+.rl-pcard-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+.rl-pcard-tags span {
+    font-size: 10px;
+    color: #666;
+    background: rgba(0,0,0,0.055);
+    padding: 2px 7px;
+    border-radius: 10px;
+}
+.rl-pcard-arrow {
+    font-size: 15px;
+    color: #ccc;
+    margin-top: auto;
+    transition: color 0.2s;
+}
+.rl-pcard:hover .rl-pcard-arrow { color: #999; }
+
+/* ---- スクロールアニメーション ---- */
+@keyframes rl-fade-up {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.rl-animate { opacity: 0; }
+.rl-animate.is-visible {
+    animation: rl-fade-up 0.58s cubic-bezier(0.22,1,0.36,1) var(--rl-delay,0s) both;
+}
+
+/* ============================================================
+   REVOlink LP — コンテンツセクション共通
+   ============================================================ */
+.rl-contents-section {
+    border-top: 1px solid #f0ede8;
+    padding: 44px 20px 36px;
+}
+.rl-contents-section > * {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.rl-section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.rl-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #999;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.rl-section-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: #222;
+    margin: 0;
+}
+.rl-section-body {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.8;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.rl-section-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px dashed #e8e4df;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.rl-section-footer a {
+    font-size: 13px;
+    color: #aaa;
+    text-decoration: none;
+    transition: color 0.18s;
+}
+.rl-section-footer a:hover { color: #FF6B35; }
+.rl-section-footer-next {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #FF6B35 !important;
+}
+.rl-form-section { background: #fff8f5; }
+
+/* ============================================================
+   REVOlink LP — Floating CTA
+   ============================================================ */
+.rl-float-cta {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 200;
+    background: linear-gradient(135deg, #FF9F56, #FF6B35);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 32px;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: 0 6px 24px rgba(255,107,53,0.42);
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.3s, transform 0.3s, box-shadow 0.2s;
+    pointer-events: none;
+}
+.rl-float-cta.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.rl-float-cta:hover {
+    box-shadow: 0 10px 32px rgba(255,107,53,0.46);
+    transform: translateY(-2px);
+}
+
+/* ============================================================
+   REVOlink LP — Responsive
+   ============================================================ */
+@media (max-width: 860px) {
+    .rl-participate-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 640px) {
+    .rl-participate-grid  { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .rl-pcard             { padding: 18px 10px 14px; border-radius: 16px; }
+    .rl-pcard-icon        { font-size: 26px; }
+    .rl-pcard-title       { font-size: 12px; }
+    .rl-participate-section { padding: 28px 12px 36px; }
+    .rl-float-cta         { bottom: 16px; right: 16px; font-size: 13px; padding: 10px 16px; }
+    .rl-section-title     { font-size: 17px; }
+}
+
+/* ============================================================
+   里親コミュニティMAP — Responsive
+   ============================================================ */
+@media (max-width: 600px) {
+    .satoya-counter-num { font-size: 54px; }
+    .satoya-tab { padding: 9px 18px; font-size: 14px; }
+    #satoya-japan-map, #satoya-world-map { height: 360px !important; }
+    .satoya-radio-group { flex-direction: column; gap: 10px; }
+}

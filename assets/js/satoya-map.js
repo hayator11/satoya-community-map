@@ -1,0 +1,569 @@
+/* 里親コミュニティMAP - Map JavaScript */
+/* Requires: Leaflet.js, satoyaData (wp_localize_script) */
+
+(function () {
+    'use strict';
+
+    if (typeof L === 'undefined' || typeof satoyaData === 'undefined') return;
+
+    var japanMap   = null;
+    var worldMap   = null;
+    var japanReady = false;
+    var worldReady = false;
+
+    var prefData    = satoyaData.prefData    || {};
+    var countryData = satoyaData.countryData || {};
+    var storeData   = satoyaData.storeData   || [];
+
+    // ---- 都道府県ごとのスポット数を集計 ----
+    var prefSpotCounts = {};
+    storeData.forEach(function (s) {
+        if (s.pref) prefSpotCounts[s.pref] = (prefSpotCounts[s.pref] || 0) + 1;
+    });
+
+    // ---- 里親レベル定義 ----
+    var LEVEL_TABLE = [
+        { lv: 0, min: 0,  max: 0,  name: '未開拓',           next: 1,  icon: '🌱' },
+        { lv: 1, min: 1,  max: 4,  name: 'コミュニティ誕生', next: 5,  icon: '🌿' },
+        { lv: 2, min: 5,  max: 9,  name: '広がり始め',       next: 10, icon: '🌸' },
+        { lv: 3, min: 10, max: 19, name: '活発な仲間たち',   next: 20, icon: '🌳' },
+        { lv: 4, min: 20, max: 49, name: '大きなコミュニティ', next: 50, icon: '🏡' },
+        { lv: 5, min: 50, max: Infinity, name: '里親の聖地', next: null, icon: '🌟' },
+    ];
+    function getLevelInfo(count) {
+        for (var i = LEVEL_TABLE.length - 1; i >= 0; i--) {
+            if (count >= LEVEL_TABLE[i].min) return LEVEL_TABLE[i];
+        }
+        return LEVEL_TABLE[0];
+    }
+    function getProgressBar(count, level) {
+        if (!level.next) return '<div class="satoya-prog-bar"><div class="satoya-prog-fill" style="width:100%"></div></div>';
+        var pct = Math.min(100, Math.round((count / level.next) * 100));
+        return '<div class="satoya-prog-bar"><div class="satoya-prog-fill" style="width:' + pct + '%"></div></div>';
+    }
+
+    // ---- マーカー登録簿（flyTo用） ----
+    var markerRegistry = []; // { marker, store, mapRef }
+
+    // ---- コリジョン対策: 同一座標に複数ピンがある場合オフセット ----
+    var usedCoords = {};
+    function getOffset(lat, lng) {
+        var key = lat.toFixed(5) + ',' + lng.toFixed(5);
+        var n = usedCoords[key] || 0;
+        usedCoords[key] = n + 1;
+        if (n === 0) return { lat: lat, lng: lng };
+        var angle = (n - 1) * (2 * Math.PI / 8);
+        return {
+            lat: lat + 0.0006 * Math.cos(angle),
+            lng: lng + 0.0009 * Math.sin(angle),
+        };
+    }
+
+    function choroplethColor(count) {
+        if (count >= 6) return '#d73027';
+        if (count >= 3) return '#fc8d59';
+        if (count >= 1) return '#fddbc7';
+        return '#f7f7f7';
+    }
+    function choroplethOpacity(count) { return count > 0 ? 0.82 : 0.45; }
+
+    // ---- アイコン ----
+    var storeIcon = L.divIcon({
+        className: '',
+        html: '<div style="background:#ff5f35;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🏪</div>',
+        iconSize: [32, 32], iconAnchor: [16, 16], popupAnchor: [0, -18],
+    });
+    var corporateIcon = L.divIcon({
+        className: '',
+        html: '<div style="background:#3b82f6;color:#fff;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🏢</div>',
+        iconSize: [32, 32], iconAnchor: [16, 16], popupAnchor: [0, -18],
+    });
+    var originIcon = L.divIcon({
+        className: '',
+        html: '<div style="background:linear-gradient(135deg,#FF9F56,#FF6B35);color:#fff;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 3px 12px rgba(255,107,53,0.55);border:3px solid #fff;">🏠</div>',
+        iconSize: [42, 42], iconAnchor: [21, 21], popupAnchor: [0, -24],
+    });
+
+    // ---- ポップアップHTML生成 ----
+    function buildPopupHtml(store) {
+        var html = '';
+
+        if (store.type === 'origin') {
+            // ── スポット情報 ──
+            html += '<div class="satoya-store-popup satoya-origin-popup">';
+            html += '<div class="satoya-origin-badge">🏠 おのくんの実家</div>';
+            html += '<h4>' + escHtml(store.name) + '</h4>';
+            if (store.msg) html += '<p>' + escHtml(store.msg) + '</p>';
+            if (store.pref || store.city) {
+                var addr = [store.pref, store.city].filter(Boolean).join(' ');
+                html += '<p class="satoya-popup-address">📍 ' + escHtml(addr) + '</p>';
+            }
+
+            // ── 同じ都道府県の里親数＋ゲーム情報 ──
+            if (store.pref) {
+                var count = prefData[store.pref] || 0;
+                var level = getLevelInfo(count);
+                html += '<div class="satoya-popup-divider"></div>';
+                html += '<div class="satoya-popup-pref-section">';
+                html += '<div class="satoya-pref-level">';
+                html += '<span class="satoya-pref-level-icon">' + level.icon + '</span>';
+                html += '<span class="satoya-pref-level-badge">Lv.' + level.lv + ' ' + level.name + '</span>';
+                html += '</div>';
+                if (count > 0) {
+                    html += '<div class="satoya-pref-count">👥 <strong>' + count + '名</strong>の里親さんが活動中</div>';
+                    html += getProgressBar(count, level);
+                    if (level.next) {
+                        html += '<p class="satoya-pref-prog-msg">あと <strong>' + (level.next - count) + '名</strong> でLv.' + (level.lv + 1) + 'へ！</p>';
+                    }
+                    html += '<p class="satoya-pref-cta-note">登録すると <strong>' + (count + 1) + '名</strong> になります！</p>';
+                } else {
+                    html += '<p class="satoya-pref-prog-msg">あなたが <strong>最初の里親さん</strong> になりませんか？</p>';
+                }
+                html += '<a href="#revolink-form-bottom" class="satoya-pref-cta-btn">🐙 ' + escHtml(store.pref) + 'の里親になる →</a>';
+                html += '</div>';
+            }
+            html += '</div>';
+
+        } else {
+            var typeLabel = store.type === 'corporate' ? '🏢 法人・企業' : '🏪 店舗・カフェ';
+            html += '<div class="satoya-store-popup">';
+            if (store.img) html += '<img src="' + store.img + '" alt="' + escHtml(store.name) + '">';
+            html += '<span class="satoya-popup-type">' + typeLabel + '</span>';
+            html += '<h4>' + escHtml(store.name) + '</h4>';
+            if (store.msg) html += '<p>' + escHtml(store.msg) + '</p>';
+            if (store.pref || store.city) {
+                var spotAddr = [store.pref, store.city].filter(Boolean).join(' ');
+                html += '<p class="satoya-popup-address">📍 ' + escHtml(spotAddr) + '</p>';
+            }
+            html += '<p class="satoya-popup-scroll-hint">⬇ ページを下にスクロールして詳細を確認</p>';
+            html += '</div>';
+        }
+        return html;
+    }
+
+    // ---- マーカー追加 ----
+    function addStoreMarkers(mapRef) {
+        usedCoords = {};
+        storeData.forEach(function (store) {
+            // origin（おのくんの実家等）は Leaflet 地図にピンを表示しない
+            // → Googleマップ側でのみピンポイント表示する
+            if (store.type === 'origin') {
+                markerRegistry.push({ marker: null, store: store, mapRef: mapRef });
+                return;
+            }
+
+            var icon = store.type === 'corporate' ? corporateIcon : storeIcon;
+            var pos  = getOffset(store.lat, store.lng);
+            var marker = L.marker([pos.lat, pos.lng], { icon: icon }).addTo(mapRef);
+            marker.bindPopup(buildPopupHtml(store), { maxWidth: 290 });
+            markerRegistry.push({ marker: marker, store: store, mapRef: mapRef });
+
+            (function(currentIdx) {
+                marker.on('popupopen', function () {
+                    if (mapRef !== japanMap) return;
+                    highlightSpotCard(currentIdx);
+                });
+            })(markerRegistry.length - 1);
+        });
+    }
+
+    // ---- スポットパネル表示 ----
+    function showSpotPanel(prefName, spots) {
+        var panel = document.getElementById('satoya-spot-panel');
+        if (!panel) return;
+
+        var html = '<div class="satoya-panel-header">';
+        html += '<div class="satoya-panel-title">📍 ' + escHtml(prefName) + ' の登録スポット（' + spots.length + '件）</div>';
+        html += '<button class="satoya-panel-close" aria-label="閉じる">✕</button>';
+        html += '</div>';
+        html += '<div class="satoya-panel-cards">';
+
+        spots.forEach(function (entry, idx) {
+            var s = entry.store;
+            var typeLabel = s.type === 'origin'    ? '🐙 おのくんの実家'
+                          : s.type === 'corporate' ? '🏢 法人・企業'
+                          : '🏪 店舗・カフェ';
+            html += '<div class="satoya-panel-card">';
+            html += '<div class="satoya-panel-card-header">';
+            html += '<span class="satoya-panel-card-type">' + typeLabel + '</span>';
+            html += '<strong class="satoya-panel-card-name">' + escHtml(s.name) + '</strong>';
+            html += '</div>';
+            if (s.msg) html += '<p class="satoya-panel-card-msg">' + escHtml(s.msg) + '</p>';
+            html += '<div class="satoya-panel-card-btns">';
+            html += '<button class="satoya-panel-flyto-btn" data-idx="' + idx + '">🗺️ 地図で確認</button>';
+            if (s.website) html += '<a href="' + s.website + '" target="_blank" rel="noopener" class="satoya-panel-web-link">🌐 サイトへ</a>';
+            if (s.line)    html += '<a href="' + s.line    + '" target="_blank" rel="noopener" class="satoya-panel-line-link">💬 LINE</a>';
+            html += '</div>';
+            html += '</div>';
+        });
+
+        html += '</div>';
+        panel.innerHTML = html;
+        panel.style.display = 'block';
+
+        // 閉じるボタン
+        panel.querySelector('.satoya-panel-close').addEventListener('click', function () {
+            panel.style.display = 'none';
+            // マップを日本全体に戻す
+            if (japanMap) japanMap.flyTo([36.5, 137.5], 5, { duration: 0.6 });
+        });
+
+        // 「地図で確認」ボタン
+        panel.querySelectorAll('.satoya-panel-flyto-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var idx    = parseInt(this.getAttribute('data-idx'), 10);
+                var entry  = spots[idx];
+                if (!entry) return;
+                // パネルのアクティブ状態
+                panel.querySelectorAll('.satoya-panel-card').forEach(function (c) { c.classList.remove('is-active'); });
+                btn.closest('.satoya-panel-card').classList.add('is-active');
+                // マップをズームしてポップアップ
+                japanMap.flyTo([entry.store.lat, entry.store.lng], 14, { duration: 0.7 });
+                setTimeout(function () { entry.marker.openPopup(); }, 750);
+                // マップにスクロール
+                var mapEl = document.getElementById('satoya-japan-map');
+                if (mapEl) mapEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        // パネルへスクロール（マップのアニメーション後）
+        setTimeout(function () {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 400);
+    }
+
+    // ---- 都道府県クリック処理（ゲーム化）----
+    function onPrefClick(name, count, lyr) {
+        var spotCount = prefSpotCounts[name] || 0;
+        var prefSpots = markerRegistry.filter(function (e) {
+            return e.store.pref === name && e.mapRef === japanMap;
+        });
+        var level = getLevelInfo(count);
+
+        var html = '<div class="satoya-pref-popup">';
+        html += '<div class="satoya-pref-popup-name">' + escHtml(name) + '</div>';
+
+        if (count > 0) {
+            // ── レベルバッジ ──
+            html += '<div class="satoya-pref-level">';
+            html += '<span class="satoya-pref-level-icon">' + level.icon + '</span>';
+            html += '<span class="satoya-pref-level-badge">Lv.' + level.lv + ' ' + level.name + '</span>';
+            html += '</div>';
+
+            // ── 里親数 ──
+            html += '<div class="satoya-pref-count">👥 <strong>' + count + '名</strong>の里親さんが活動中</div>';
+
+            // ── 進捗バー ──
+            if (level.next) {
+                var remain = level.next - count;
+                html += getProgressBar(count, level);
+                html += '<p class="satoya-pref-prog-msg">あと <strong>' + remain + '名</strong> で Lv.' + (level.lv + 1) + ' <em>' + (LEVEL_TABLE[level.lv + 1] ? LEVEL_TABLE[level.lv + 1].name : '') + '</em> へ！</p>';
+            } else {
+                html += getProgressBar(count, level);
+                html += '<p class="satoya-pref-prog-msg">🌟 最高レベル達成！おめでとうございます</p>';
+            }
+
+            if (spotCount > 0) {
+                html += '<div class="satoya-pref-popup-stats">';
+                html += '<span class="satoya-pref-stat spot">📍 登録スポット ' + spotCount + ' 件</span>';
+                html += '</div>';
+            }
+        } else {
+            html += '<div class="satoya-pref-level">';
+            html += '<span class="satoya-pref-level-icon">' + level.icon + '</span>';
+            html += '<span class="satoya-pref-level-badge">Lv.0 未開拓エリア</span>';
+            html += '</div>';
+            html += '<div class="satoya-pref-count-zero">まだ里親さんがいません</div>';
+            html += getProgressBar(0, level);
+            html += '<p class="satoya-pref-prog-msg">あなたが <strong>最初の里親さん</strong> になりませんか？</p>';
+        }
+
+        // ── CTA ──
+        html += '<div class="satoya-pref-cta-wrap">';
+        if (count > 0) {
+            html += '<p class="satoya-pref-cta-note">登録すると <strong>' + (count + 1) + '名</strong> になります！</p>';
+        }
+        var regUrl = (satoyaData.registerUrl || '') + '#revolink-form-bottom';
+        html += '<a href="' + regUrl + '" class="satoya-pref-cta-btn" target="_blank" rel="noopener">🐙 ' + escHtml(name) + 'の里親になる →</a>';
+        if (spotCount > 0) {
+            var btnLabel = spotCount === 1 ? '📍 登録スポットを見る' : '📍 登録スポット（' + spotCount + '件）を見る';
+            html += '<button class="satoya-pref-zoom-btn">' + btnLabel + '</button>';
+        }
+        html += '</div>';
+        html += '</div>';
+
+        L.popup({ maxWidth: 300 })
+            .setLatLng(lyr.getBounds().getCenter())
+            .setContent(html)
+            .openOn(japanMap);
+
+        setTimeout(function () {
+            var btn = document.querySelector('.satoya-pref-zoom-btn');
+            if (!btn) return;
+            btn.addEventListener('click', function () {
+                japanMap.closePopup();
+
+                // スポット一覧を表示
+                var dir = document.getElementById('satoya-spot-directory');
+                if (dir) dir.style.display = 'block';
+
+                // 最初のスポットのGoogleマップを自動表示
+                if (prefSpots.length > 0) {
+                    var firstSpot = prefSpots[0].store;
+                    showGoogleMap(firstSpot.lat, firstSpot.lng, firstSpot.name);
+                    // 複数ある場合は対応するカードをハイライト
+                    var cards = document.querySelectorAll('.satoya-spot-card[data-lat]');
+                    cards.forEach(function (c) { c.classList.remove('is-active'); });
+                    if (cards[0]) cards[0].classList.add('is-active');
+                }
+
+                // 全体表示ボタンを表示
+                var resetBtn = document.getElementById('satoya-map-reset');
+                if (resetBtn) resetBtn.style.display = 'inline-flex';
+            });
+        }, 80);
+    }
+
+    // ---- Init Japan Map ----
+    function initJapanMap() {
+        if (japanReady) return;
+        japanReady = true;
+
+        japanMap = L.map('satoya-japan-map', {
+            center: [36.5, 137.5], zoom: 5, scrollWheelZoom: false,
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            subdomains: 'abc', maxZoom: 19,
+        }).addTo(japanMap);
+
+        fetch('https://raw.githubusercontent.com/codeforgermany/click_that_hood/main/public/data/japan.geojson')
+            .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(function (geojson) {
+                var layer = L.geoJSON(geojson, {
+                    style: function (f) {
+                        var name  = f.properties.name || f.properties.nam_ja || '';
+                        var count = prefData[name] || 0;
+                        return { fillColor: choroplethColor(count), fillOpacity: choroplethOpacity(count), weight: 1, color: '#fff', opacity: 1 };
+                    },
+                    onEachFeature: function (f, lyr) {
+                        var name  = f.properties.name || f.properties.nam_ja || '';
+                        var count = prefData[name] || 0;
+                        lyr.bindTooltip('<strong>' + name + '</strong><br>里親数: <strong>' + count + '</strong> 名', { direction: 'auto', sticky: true });
+                        lyr.on('mouseover', function () { this.setStyle({ fillOpacity: 1, weight: 2, color: '#ff5f35' }); });
+                        lyr.on('mouseout',  function () { layer.resetStyle(this); });
+                        lyr.on('click',     function () { onPrefClick(name, count, lyr); });
+                    },
+                }).addTo(japanMap);
+
+                addStoreMarkers(japanMap);
+            })
+            .catch(function (err) {
+                console.warn('[satoya-map] Japan GeoJSON error:', err);
+                var el = document.getElementById('satoya-japan-map');
+                if (el) el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:14px;">地図の読み込みに失敗しました。インターネット接続を確認してください。</div>';
+            });
+    }
+
+    // ---- Init World Map ----
+    function initWorldMap() {
+        if (worldReady) return;
+        worldReady = true;
+
+        worldMap = L.map('satoya-world-map', { center: [20, 10], zoom: 2, scrollWheelZoom: false, minZoom: 1 });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            subdomains: 'abc', maxZoom: 10,
+        }).addTo(worldMap);
+
+        fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
+            .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(function (geojson) {
+                var layer = L.geoJSON(geojson, {
+                    style: function (f) {
+                        var name  = f.properties.ADMIN || '';
+                        var count = countryData[name] || 0;
+                        return { fillColor: count > 0 ? choroplethColor(count) : '#e8e8e8', fillOpacity: count > 0 ? 0.8 : 0.3, weight: 0.5, color: '#ccc', opacity: 1 };
+                    },
+                    onEachFeature: function (f, lyr) {
+                        var name  = f.properties.ADMIN || '';
+                        var count = countryData[name] || 0;
+                        if (count > 0) {
+                            lyr.bindTooltip('<strong>' + name + '</strong><br>里親数: <strong>' + count + '</strong> 名', { direction: 'auto', sticky: true });
+                            lyr.on('mouseover', function () { this.setStyle({ fillOpacity: 1, weight: 2, color: '#ff5f35' }); });
+                            lyr.on('mouseout',  function () { layer.resetStyle(this); });
+                        }
+                    },
+                }).addTo(worldMap);
+
+                Object.keys(countryData).forEach(function (country) {
+                    var cnt = countryData[country];
+                    geojson.features.forEach(function (f) {
+                        if ((f.properties.ADMIN || '') === country) {
+                            try {
+                                var bounds = L.geoJSON(f).getBounds();
+                                L.circleMarker(bounds.getCenter(), {
+                                    radius: 10 + Math.min(cnt * 3, 20), fillColor: '#ff5f35', color: '#fff', weight: 2, fillOpacity: 0.9,
+                                }).bindTooltip(country + ': ' + cnt + '名').addTo(worldMap);
+                            } catch (e) { /* skip */ }
+                        }
+                    });
+                });
+
+                addStoreMarkers(worldMap);
+            })
+            .catch(function (err) {
+                console.warn('[satoya-map] World GeoJSON error:', err);
+                var el = document.getElementById('satoya-world-map');
+                if (el) el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:14px;">地図の読み込みに失敗しました。</div>';
+            });
+    }
+
+    // ---- Tab switching ----
+    function initTabs() {
+        var tabs   = document.querySelectorAll('.satoya-tab');
+        var panels = document.querySelectorAll('.satoya-map-panel');
+        if (!tabs.length) return;
+
+        initJapanMap();
+
+        tabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                tabs.forEach(function (t) { t.classList.remove('active'); });
+                tab.classList.add('active');
+                var targetId = tab.getAttribute('data-target');
+                panels.forEach(function (p) { p.style.display = (p.id === targetId) ? '' : 'none'; });
+
+                // スポットパネルをリセット
+                var sp = document.getElementById('satoya-spot-panel');
+                if (sp) sp.style.display = 'none';
+
+                if (targetId === 'satoya-world-view') {
+                    initWorldMap();
+                    setTimeout(function () { if (worldMap) worldMap.invalidateSize(); }, 120);
+                } else {
+                    if (japanMap) japanMap.invalidateSize();
+                }
+            });
+        });
+    }
+
+    // ---- Googleマップ iframeでピンポイント表示 ----
+    function showGoogleMap(lat, lng, name) {
+        var panel  = document.getElementById('satoya-gmap-panel');
+        var iframe = document.getElementById('satoya-gmap-iframe');
+        var title  = document.getElementById('satoya-gmap-title');
+        if (!panel || !iframe) return;
+
+        // Google Maps embed URL（APIキー不要）
+        var src = 'https://maps.google.com/maps?q='
+            + lat + ',' + lng
+            + '&z=16&output=embed&hl=ja';
+        iframe.src = src;
+        if (title) title.textContent = '📍 ' + (name || '登録スポット');
+        panel.style.display = 'block';
+
+        // スポット一覧も表示
+        var dir = document.getElementById('satoya-spot-directory');
+        if (dir) dir.style.display = 'block';
+
+        // パネルにスクロール
+        setTimeout(function () {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 200);
+    }
+
+    // ---- スポットカードのハイライト＋Googleマップ表示 ----
+    function highlightSpotCard(registryIdx) {
+        var cards = document.querySelectorAll('.satoya-spot-card[data-lat]');
+        cards.forEach(function (c) { c.classList.remove('is-active'); });
+
+        var entry = markerRegistry[registryIdx];
+        if (!entry) return;
+        var s = entry.store;
+
+        // 対応するカードをアクティブに
+        var targetCard = null;
+        cards.forEach(function (c) {
+            if (Math.abs(parseFloat(c.dataset.lat) - s.lat) < 0.001
+             && Math.abs(parseFloat(c.dataset.lng) - s.lng) < 0.001) {
+                targetCard = c;
+            }
+        });
+        if (targetCard) {
+            targetCard.classList.add('is-active');
+            targetCard.classList.add('is-flash');
+            setTimeout(function () { targetCard.classList.remove('is-flash'); }, 1200);
+        }
+
+        // Googleマップ表示
+        showGoogleMap(s.lat, s.lng, s.name);
+    }
+
+    // ---- スポットカード クリック → Googleマップ表示 ----
+    function initSpotDirectory() {
+        // 全体をリセットする共通関数
+        function resetMapView() {
+            var panel  = document.getElementById('satoya-gmap-panel');
+            var iframe = document.getElementById('satoya-gmap-iframe');
+            var dir    = document.getElementById('satoya-spot-directory');
+            var resetBtn = document.getElementById('satoya-map-reset');
+            if (panel)    { panel.style.display = 'none'; }
+            if (iframe)   { iframe.src = ''; }
+            if (dir)      { dir.style.display = 'none'; }
+            if (resetBtn) { resetBtn.style.display = 'none'; }
+            if (japanMap) { japanMap.flyTo([36.5, 137.5], 5, { duration: 0.6 }); }
+            document.querySelectorAll('.satoya-spot-card').forEach(function (c) {
+                c.classList.remove('is-active');
+            });
+        }
+
+        // Googleマップパネルの閉じるボタン
+        var closeBtn = document.getElementById('satoya-gmap-close');
+        if (closeBtn) { closeBtn.addEventListener('click', resetMapView); }
+
+        // 凡例の「全体表示に戻る」ボタン
+        var resetBtn = document.getElementById('satoya-map-reset');
+        if (resetBtn) { resetBtn.addEventListener('click', resetMapView); }
+
+        // スポットカードのクリック
+        var cards = document.querySelectorAll('.satoya-spot-card[data-lat]');
+        cards.forEach(function (card) {
+            card.addEventListener('click', function () {
+                var lat  = parseFloat(this.dataset.lat);
+                var lng  = parseFloat(this.dataset.lng);
+                var name = this.querySelector('.satoya-spot-card-name')
+                           ? this.querySelector('.satoya-spot-card-name').textContent
+                           : '';
+
+                // カードをアクティブに
+                cards.forEach(function (c) { c.classList.remove('is-active'); });
+                this.classList.add('is-active');
+
+                // Googleマップ iframeをパネルに表示（Leafletズームは行わない）
+                showGoogleMap(lat, lng, name);
+
+                // 全体表示ボタンを表示
+                var resetBtn = document.getElementById('satoya-map-reset');
+                if (resetBtn) resetBtn.style.display = 'inline-flex';
+            });
+        });
+    }
+
+    // ---- Boot ----
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { initTabs(); initSpotDirectory(); });
+    } else {
+        initTabs();
+        initSpotDirectory();
+    }
+
+    // ---- Utility ----
+    function escHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+}());
